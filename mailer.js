@@ -1,30 +1,24 @@
-var email = require("emailjs");
 var moment = require('moment');
 var log = require('./log.js');
 var util = require('./util.js');
+var push = require( 'pushover-notifications' );
 var config = util.getConfig().mail;
 var server;
 
+
 module.exports.init = function(callback) {
   var setupMail = function(err, result) {
-    if(result) {
-      log.info('Got it.');
-      config.password = result.password;
-    }
-
-    server = email.server.connect({
-      user: config.email,
-      password: config.password,
-      host: "smtp.gmail.com",
-      ssl: true
+    server = new push( {
+      user: config.user,
+      token: config.token,
+      // update_sounds: true // update the list of sounds every day - will
+      // prevent app from exiting.
     });
 
     if(config.sendMailOnStart) {
       server.send({
-        from: "Gekko <" + config.email + ">",
-        to: "Bud Fox <" + config.email + ">",
-        subject: "Gekko has started",
-        text: [
+        title: "Gekko has started",
+        message: [
           "I've just started watching the markets, ",
           "I'll let you know when I got some advice"
         ].join('')
@@ -35,23 +29,7 @@ module.exports.init = function(callback) {
     callback();
   }
 
-  if(!config.password) {
-    // ask for the mail password
-    var prompt = require('prompt-lite');
-    prompt.start();
-    var warning = [
-      '\n\n\tYou configured Gekko to mail you advice, Gekko needs your email',
-      'password to send emails (to you). Gekko is an opensource project',
-      '[ http://github.com/askmike/gekko ], you can take my word but always',
-      'check the code yourself.',
-      '\n\n\tWARNING: If you have not downloaded Gekko from the github page above we',
-      'CANNOT garantuee that your email address & password are safe!\n'
-    ].join('\n\t');
-    log.warn(warning);
-    prompt.get({name: 'password', hidden: true}, setupMail);
-  } else {
-    setupMail(false, false);
-  }
+  setupMail(false, false);
 }
 
 var send = function(err) {
@@ -74,9 +52,7 @@ module.exports.send = function(what, price, meta) {
   ].join('\n');
 
   server.send({
-    text: text,
-    from: "Gekko <" + config.email + ">",
-    to: "Bud Fox <" + config.email + ">",
-    subject: "New Gekko advice: " + what
+    message: text,
+    title: "New Gekko advice: " + what
   }, send);
 }
