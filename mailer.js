@@ -5,14 +5,11 @@ var push = require( 'pushover-notifications' );
 var config = util.getConfig().mail;
 var server;
 
-
 module.exports.init = function(callback) {
   var setupMail = function(err, result) {
     server = new push( {
       user: config.user,
-      token: config.token,
-      // update_sounds: true // update the list of sounds every day - will
-      // prevent app from exiting.
+      token: config.token
     });
 
     if(config.sendMailOnStart) {
@@ -27,10 +24,10 @@ module.exports.init = function(callback) {
 
     log.debug('Setup email adviser.');
     callback();
-  }
+  };
 
   setupMail(false, false);
-}
+};
 
 var send = function(err) {
   if(err)
@@ -40,8 +37,8 @@ var send = function(err) {
 }
 
 module.exports.send = function(what, price, meta) {
-  if(what !== 'BUY' && what !== 'SELL')
-    return;
+  // if(what !== 'BUY' && what !== 'SELL')
+  //   return;
 
   var text = [
     'Gekko is watching the bitcoin market and has detected a new trend, advice is to ' + what,
@@ -55,4 +52,4 @@ module.exports.send = function(what, price, meta) {
     message: text,
     title: "New Gekko advice: " + what
   }, send);
-}
+};
